@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,6 +18,7 @@
  */
 package org.mapstruct.ap.testutil.runner;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,25 +29,26 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaCompiler.CompilationTask;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.StandardLocation;
-import javax.tools.ToolProvider;
 
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-import org.mapstruct.ap.MappingProcessor;
 import org.mapstruct.ap.testutil.WithClasses;
 import org.mapstruct.ap.testutil.compilation.annotation.CompilationResult;
 import org.mapstruct.ap.testutil.compilation.annotation.ExpectedCompilationOutcome;
 import org.mapstruct.ap.testutil.compilation.annotation.ProcessorOption;
+import org.mapstruct.ap.testutil.compilation.annotation.ProcessorOptions;
 import org.mapstruct.ap.testutil.compilation.model.CompilationOutcomeDescriptor;
 import org.mapstruct.ap.testutil.compilation.model.DiagnosticDescriptor;
+import org.xml.sax.InputSource;
+
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
+import com.puppycrawl.tools.checkstyle.Checker;
+import com.puppycrawl.tools.checkstyle.ConfigurationLoader;
+import com.puppycrawl.tools.checkstyle.DefaultLogger;
+import com.puppycrawl.tools.checkstyle.PropertiesExpander;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -55,104 +57,107 @@ import static org.fest.assertions.Assertions.assertThat;
  *
  * @author Andreas Gudian
  */
-class CompilingStatement extends Statement {
+abstract class CompilingStatement extends Statement {
 
-    /**
-     * Property to specify the sub-directory below /target/ where the generated files are placed
-     */
-    public static final String MAPPER_TEST_OUTPUT_DIR_PROPERTY = "mapper.test.output.dir";
-    private static final String TARGET_COMPILATION_TESTS = "/target/"
-        + System.getProperty( MAPPER_TEST_OUTPUT_DIR_PROPERTY, "compilation-tests" ) + "_thread-";
+    private static final String TARGET_COMPILATION_TESTS = "/target/compilation-tests/";
 
     private static final String LINE_SEPARATOR = System.getProperty( "line.separator" );
+
     private static final DiagnosticDescriptorComparator COMPARATOR = new DiagnosticDescriptorComparator();
 
-    private static final ThreadLocal<Integer> THREAD_NUMBER = new ThreadLocal<Integer>() {
-        private final AtomicInteger nextThreadId = new AtomicInteger( 0 );
+    protected static final String SOURCE_DIR = getBasePath() + "/src/test/java";
 
-        @Override
-        protected Integer initialValue() {
-            return nextThreadId.getAndIncrement();
-        }
-    };
+    protected static final List<String> COMPILER_CLASSPATH = buildCompilerClasspath();
 
-    /**
-     * Caches the outcome of given compilations. That way we avoid the repeated compilation of the same source files for
-     * several test methods of one test class.
-     */
-    private static final ThreadLocal<CompilationCache> COMPILATION_CACHE = new ThreadLocal<CompilationCache>() {
-        @Override
-        protected CompilationCache initialValue() {
-            return new CompilationCache();
-        }
-    };
-
-    private static final List<String> LIBRARIES = Arrays.asList(
-        "mapstruct.jar",
-        "guava.jar",
-        "javax.inject.jar",
-        "joda-time.jar"
-    );
-
-    private final Statement next;
     private final FrameworkMethod method;
-    private final ModifiableURLClassLoader classloader;
+    private final CompilationCache compilationCache;
+    private Statement next;
 
-    private JavaCompiler compiler;
-    private String sourceDir;
     private String classOutputDir;
     private String sourceOutputDir;
-    private List<File> classPath;
+    private CompilationRequest compilationRequest;
 
-    public CompilingStatement(Statement next, FrameworkMethod method, ModifiableURLClassLoader classloader) {
-        this.next = next;
+    CompilingStatement(FrameworkMethod method, CompilationCache compilationCache) {
         this.method = method;
-        this.classloader = classloader;
+        this.compilationCache = compilationCache;
+
+        this.compilationRequest = new CompilationRequest( getTestClasses(), getProcessorOptions() );
+    }
+
+    void setNextStatement(Statement next) {
+        this.next = next;
     }
 
     @Override
     public void evaluate() throws Throwable {
         generateMapperImplementation();
 
+        GeneratedSource.setCompilingStatement( this );
         next.evaluate();
+        GeneratedSource.clearCompilingStatement();
     }
 
-    static String getSourceOutputDir() {
-        return COMPILATION_CACHE.get().lastSourceOutputDir;
+    String getSourceOutputDir() {
+        return compilationCache.getLastSourceOutputDir();
     }
 
-    protected void setupCompiler() throws Exception {
-        compiler = ToolProvider.getSystemJavaCompiler();
+    protected void setupDirectories() throws Exception {
+        String compilationRoot = getBasePath()
+            + TARGET_COMPILATION_TESTS
+            + method.getDeclaringClass().getName()
+            + "/" + method.getName()
+            + getPathSuffix();
 
-        String basePath = getBasePath();
-
-        Integer i = THREAD_NUMBER.get();
-
-        sourceDir = basePath + "/src/test/java";
-        classOutputDir = basePath + TARGET_COMPILATION_TESTS + i + "/classes";
-        sourceOutputDir = basePath + TARGET_COMPILATION_TESTS + i + "/generated-sources/mapping";
-
-        String testDependenciesDir = basePath + "/target/test-dependencies/";
-
-        classPath = new ArrayList<File>();
-        for ( String library : LIBRARIES ) {
-            classPath.add( new File( testDependenciesDir, library ) );
-        }
+        classOutputDir = compilationRoot + "/classes";
+        sourceOutputDir = compilationRoot + "/generated-sources";
 
         createOutputDirs();
 
-        classloader.addOutputDir( classOutputDir );
+        ( (ModifiableURLClassLoader) Thread.currentThread().getContextClassLoader() ).addOutputDir( classOutputDir );
+    }
+
+    protected abstract String getPathSuffix();
+
+    private static List<String> buildCompilerClasspath() {
+        String[] bootClasspath =
+            System.getProperty( "java.class.path" ).split( System.getProperty( "path.separator" ) );
+        String fs = System.getProperty( "file.separator" );
+        String testClasses = "target" + fs + "test-classes";
+
+        String[] whitelist =
+            new String[] {
+                "processor" + fs + "target",  // the processor itself
+                "core" + fs + "target",  // MapStruct annotations in multi-module reactor build or IDE
+                "org" + fs + "mapstruct" + fs + "mapstruct" + fs,  // MapStruct annotations in single module build
+                "freemarker",
+                "guava",
+                "javax.inject",
+                "spring-beans",
+                "spring-context",
+                "joda-time" };
+
+        List<String> classpath = new ArrayList<String>();
+        for ( String path : bootClasspath ) {
+            if ( !path.contains( testClasses ) && isWhitelisted( path, whitelist ) ) {
+                classpath.add( path );
+            }
+        }
+
+        return classpath;
+    }
+
+    private static boolean isWhitelisted(String path, String[] whitelist) {
+        for ( String whitelisted : whitelist ) {
+            if ( path.contains( whitelisted ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void generateMapperImplementation() throws Exception {
-        CompilationResultHolder compilationResult = compile( getTestClasses(), getProcessorOptions() );
+        CompilationOutcomeDescriptor actualResult = compile();
 
-        CompilationOutcomeDescriptor actualResult =
-            CompilationOutcomeDescriptor.forResult(
-                sourceDir,
-                compilationResult.compilationSuccessful,
-                compilationResult.diagnostics.getDiagnostics()
-            );
         CompilationOutcomeDescriptor expectedResult =
             CompilationOutcomeDescriptor.forExpectedCompilationResult(
                 method.getAnnotation( ExpectedCompilationOutcome.class )
@@ -160,7 +165,7 @@ class CompilingStatement extends Statement {
 
         if ( expectedResult.getCompilationResult() == CompilationResult.SUCCEEDED ) {
             assertThat( actualResult.getCompilationResult() ).describedAs(
-                "Compilation failed. Diagnostics: " + compilationResult.diagnostics.getDiagnostics()
+                "Compilation failed. Diagnostics: " + actualResult.getDiagnostics()
             ).isEqualTo(
                 CompilationResult.SUCCEEDED
             );
@@ -172,6 +177,49 @@ class CompilingStatement extends Statement {
         }
 
         assertDiagnostics( actualResult.getDiagnostics(), expectedResult.getDiagnostics() );
+
+        assertCheckstyleRules();
+    }
+
+    private void assertCheckstyleRules() throws Exception {
+        if ( sourceOutputDir != null ) {
+            Properties properties = new Properties();
+            properties.put( "checkstyle.cache.file", classOutputDir + "/checkstyle.cache" );
+
+            final Checker checker = new Checker();
+            checker.setModuleClassLoader( Checker.class.getClassLoader() );
+            checker.configure( ConfigurationLoader.loadConfiguration(
+                new InputSource( getClass().getClassLoader().getResourceAsStream(
+                    "checkstyle-for-generated-sources.xml" ) ),
+                new PropertiesExpander( properties ),
+                true ) );
+
+            ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
+            checker.addListener( new DefaultLogger( ByteStreams.nullOutputStream(), true, errorStream, true ) );
+
+            int errors = checker.process( findGeneratedFiles( new File( sourceOutputDir ) ) );
+            if ( errors > 0 ) {
+                String errorLog = errorStream.toString( "UTF-8" );
+                assertThat( true ).describedAs( "Expected checkstyle compliant output, but got errors:\n" + errorLog )
+                                  .isEqualTo( false );
+            }
+        }
+    }
+
+    private static List<File> findGeneratedFiles(File file) {
+        final List<File> files = Lists.newLinkedList();
+
+        if ( file.canRead() ) {
+            if ( file.isDirectory() ) {
+                for ( File element : file.listFiles() ) {
+                    files.addAll( findGeneratedFiles( element ) );
+                }
+            }
+            else if ( file.isFile() ) {
+                files.add( file );
+            }
+        }
+        return files;
     }
 
     private void assertDiagnostics(List<DiagnosticDescriptor> actualDiagnostics,
@@ -179,6 +227,7 @@ class CompilingStatement extends Statement {
 
         Collections.sort( actualDiagnostics, COMPARATOR );
         Collections.sort( expectedDiagnostics, COMPARATOR );
+        expectedDiagnostics = filterExpectedDiagnostics( expectedDiagnostics );
 
         Iterator<DiagnosticDescriptor> actualIterator = actualDiagnostics.iterator();
         Iterator<DiagnosticDescriptor> expectedIterator = expectedDiagnostics.iterator();
@@ -215,14 +264,20 @@ class CompilingStatement extends Statement {
                     actual.getLine(),
                     actual.getKind()
                 )
-            ).matches( ".*" + expected.getMessage() + ".*" );
+            ).matches( "(?ms).*" + expected.getMessage() + ".*" );
         }
     }
 
     /**
+     * @param expectedDiagnostics expected diagnostics
+     * @return a possibly filtered list of expected diagnostics
+     */
+    protected List<DiagnosticDescriptor> filterExpectedDiagnostics(List<DiagnosticDescriptor> expectedDiagnostics) {
+        return expectedDiagnostics;
+    }
+
+    /**
      * Returns the classes to be compiled for this test.
-     *
-     * @param testMethod The test method of interest
      *
      * @return A set containing the classes to be compiled for this test
      */
@@ -251,32 +306,51 @@ class CompilingStatement extends Statement {
     /**
      * Returns the processor options to be used this test.
      *
-     * @param testMethod The test method of interest
-     *
      * @return A list containing the processor options to be used for this test
      */
     private List<String> getProcessorOptions() {
-        ProcessorOption processorOption = method.getAnnotation( ProcessorOption.class );
+        List<ProcessorOption> processorOptions =
+            getProcessorOptions(
+                method.getAnnotation( ProcessorOptions.class ),
+                method.getAnnotation( ProcessorOption.class ) );
 
-        if ( processorOption == null ) {
-            processorOption = method.getMethod().getDeclaringClass().getAnnotation( ProcessorOption.class );
+        if ( processorOptions.isEmpty() ) {
+            processorOptions =
+                getProcessorOptions(
+                    method.getMethod().getDeclaringClass().getAnnotation( ProcessorOptions.class ),
+                    method.getMethod().getDeclaringClass().getAnnotation( ProcessorOption.class ) );
         }
 
-        return processorOption != null ? Arrays.asList( asOptionString( processorOption ) )
-            : Collections.<String>emptyList();
+        List<String> result = new ArrayList<String>( processorOptions.size() );
+        for ( ProcessorOption option : processorOptions ) {
+            result.add( asOptionString( option ) );
+        }
+
+        return result;
+    }
+
+    private List<ProcessorOption> getProcessorOptions(ProcessorOptions options, ProcessorOption option) {
+        if ( options != null ) {
+            return Arrays.asList( options.value() );
+        }
+        else if ( option != null ) {
+            return Arrays.asList( option );
+        }
+
+        return Collections.emptyList();
     }
 
     private String asOptionString(ProcessorOption processorOption) {
         return String.format( "-A%s=%s", processorOption.name(), processorOption.value() );
     }
 
-    private Set<File> getSourceFiles(Collection<Class<?>> classes) {
+    protected Set<File> getSourceFiles(Collection<Class<?>> classes) {
         Set<File> sourceFiles = new HashSet<File>( classes.size() );
 
         for ( Class<?> clazz : classes ) {
             sourceFiles.add(
                 new File(
-                    sourceDir + File.separator + clazz.getName().replace( ".", File.separator )
+                    SOURCE_DIR + File.separator + clazz.getName().replace( ".", File.separator )
                         + ".java"
                 )
             );
@@ -285,45 +359,33 @@ class CompilingStatement extends Statement {
         return sourceFiles;
     }
 
-    private CompilationResultHolder compile(Set<Class<?>> sourceClasses, List<String> processorOptions)
+    private CompilationOutcomeDescriptor compile()
         throws Exception {
-        CompilationRequest request = new CompilationRequest( sourceClasses, processorOptions );
 
-        CompilationCache cache = COMPILATION_CACHE.get();
-        if ( request.equals( cache.lastRequest ) ) {
-            return cache.lastResult;
+        if ( !needsRecompilation() ) {
+            return compilationCache.getLastResult();
         }
 
-        setupCompiler();
-        cache.lastSourceOutputDir = sourceOutputDir;
+        setupDirectories();
+        compilationCache.setLastSourceOutputDir( sourceOutputDir );
 
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager( null, null, null );
+        CompilationOutcomeDescriptor resultHolder =
+            compileWithSpecificCompiler( compilationRequest, sourceOutputDir, classOutputDir );
 
-        Iterable<? extends JavaFileObject> compilationUnits =
-            fileManager.getJavaFileObjectsFromFiles( getSourceFiles( sourceClasses ) );
-
-        try {
-            fileManager.setLocation( StandardLocation.CLASS_PATH, classPath );
-            fileManager.setLocation( StandardLocation.CLASS_OUTPUT, Arrays.asList( new File( classOutputDir ) ) );
-            fileManager.setLocation( StandardLocation.SOURCE_OUTPUT, Arrays.asList( new File( sourceOutputDir ) ) );
-        }
-        catch ( IOException e ) {
-            throw new RuntimeException( e );
-        }
-
-        CompilationTask task =
-            compiler.getTask( null, fileManager, diagnostics, processorOptions, null, compilationUnits );
-        task.setProcessors( Arrays.asList( new MappingProcessor() ) );
-
-        CompilationResultHolder resultHolder = new CompilationResultHolder( diagnostics, task.call() );
-
-        cache.lastRequest = request;
-        cache.lastResult = resultHolder;
+        compilationCache.update( compilationRequest, resultHolder );
         return resultHolder;
     }
 
-    private String getBasePath() {
+    protected abstract CompilationOutcomeDescriptor compileWithSpecificCompiler(
+                                                                                CompilationRequest compilationRequest,
+                                                                                String sourceOutputDir,
+                                                                                String classOutputDir);
+
+    boolean needsRecompilation() {
+        return !compilationRequest.equals( compilationCache.getLastRequest() );
+    }
+
+    private static String getBasePath() {
         try {
             return new File( "." ).getCanonicalPath();
         }
@@ -374,66 +436,7 @@ class CompilingStatement extends Statement {
                 return result;
             }
 
-            // Using the message is not perfect when using regular expressions,
-            // but it's better than nothing
-            return o1.getMessage().compareTo( o2.getMessage() );
-        }
-    }
-
-    private static class CompilationCache {
-        private String lastSourceOutputDir;
-        private CompilationRequest lastRequest;
-        private CompilationResultHolder lastResult;
-    }
-
-    /**
-     * Represents the result of a compilation.
-     */
-    private static class CompilationResultHolder {
-        private final DiagnosticCollector<JavaFileObject> diagnostics;
-        private final boolean compilationSuccessful;
-
-        public CompilationResultHolder(DiagnosticCollector<JavaFileObject> diagnostics, boolean compilationSuccessful) {
-            this.diagnostics = diagnostics;
-            this.compilationSuccessful = compilationSuccessful;
-        }
-    }
-
-    /**
-     * Represents a compilation task for a number of sources with given processor options.
-     */
-    private static class CompilationRequest {
-        private final Set<Class<?>> sourceClasses;
-        private final List<String> processorOptions;
-
-        public CompilationRequest(Set<Class<?>> sourceClasses, List<String> processorOptions) {
-            this.sourceClasses = sourceClasses;
-            this.processorOptions = processorOptions;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ( ( processorOptions == null ) ? 0 : processorOptions.hashCode() );
-            result = prime * result + ( ( sourceClasses == null ) ? 0 : sourceClasses.hashCode() );
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if ( this == obj ) {
-                return true;
-            }
-            if ( obj == null ) {
-                return false;
-            }
-            if ( getClass() != obj.getClass() ) {
-                return false;
-            }
-            CompilationRequest other = (CompilationRequest) obj;
-
-            return processorOptions.equals( other.processorOptions ) && sourceClasses.equals( other.sourceClasses );
+            return o1.getKind().compareTo( o2.getKind() );
         }
     }
 }

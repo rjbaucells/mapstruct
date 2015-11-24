@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-     Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+     Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
      and/or other contributors as indicated by the @authors tag. See the
      copyright.txt file in the distribution for a full listing of all
      contributors.
@@ -36,13 +36,6 @@
                 <include>org.mapstruct:mapstruct-processor</include>
             </includes>
         </dependencySet>
-
-        <dependencySet>
-            <outputDirectory>lib/dependencies</outputDirectory>
-            <includes>
-                <include>org.freemarker:freemarker</include>
-            </includes>
-        </dependencySet>
     </dependencySets>
 
     <files>
@@ -55,12 +48,20 @@
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
-            <source>../license.txt</source>
+            <source>../LICENSE.txt</source>
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
             <source>../readme.md</source>
             <outputDirectory>/</outputDirectory>
+        </file>
+        <file>
+            <source>target/freemarker-unpacked/META-INF/NOTICE.txt</source>
+            <outputDirectory>/</outputDirectory>
+        </file>
+        <file>
+            <source>target/freemarker-unpacked/META-INF/LICENSE.txt</source>
+            <outputDirectory>etc/freemarker</outputDirectory>
         </file>
     </files>
 
@@ -75,7 +76,7 @@
             <includes>
                 <include>../CONTRIBUTING.md</include>
                 <include>../copyright.txt</include>
-                <include>../license.txt</include>
+                <include>../LICENSE.txt</include>
                 <include>../pom.xml</include>
                 <include>../readme.md</include>
                 <include>../etc/license.txt</include>
@@ -88,5 +89,6 @@
             <directory>target/site/apidocs</directory>
             <outputDirectory>docs/api</outputDirectory>
         </fileSet>
+
     </fileSets>
 </assembly>

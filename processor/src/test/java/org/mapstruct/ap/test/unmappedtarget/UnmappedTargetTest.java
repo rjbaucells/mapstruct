@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -87,7 +87,7 @@ public class UnmappedTargetTest {
 
     @Test
     @WithClasses({ Source.class, Target.class, SourceTargetMapper.class })
-    @ProcessorOption(name = "unmappedTargetPolicy", value = "ERROR")
+    @ProcessorOption(name = "mapstruct.unmappedTargetPolicy", value = "ERROR")
     @ExpectedCompilationOutcome(
         value = CompilationResult.FAILED,
         diagnostics = {

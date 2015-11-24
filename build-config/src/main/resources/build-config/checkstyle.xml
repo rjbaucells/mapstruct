@@ -52,12 +52,19 @@
         <property name="message" value="Line has trailing spaces"/>
     </module>
 
+    <module name="RegexpSingleline">
+        <!-- do not allow a package declaration that contains ".target." or "target;"  -->
+        <property name="format" value="^package .*\.target[\.;]"/>
+        <property name="message" value="Do not use &quot;target&quot; as package name element"/>
+    </module>
+
     <module name="TreeWalker">
 
         <property name="cacheFile" value="${checkstyle.cache.file}"/>
 
         <!-- Required for SuppressionCommentFilter -->
         <module name="FileContentsHolder"/>
+        <module name="SuppressWarningsHolder"/>
 
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
@@ -102,6 +109,9 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports">
             <property name="processJavadoc" value="true"/>
+        </module>
+        <module name="ImportControl">
+            <property name="file" value="${basedir}/../build-config/src/main/resources/build-config/import-control.xml" />
         </module>
 
 
@@ -163,7 +173,7 @@
         <module name="InnerAssignment"/>
         <!-- <module name="MagicNumber"/> -->
         <module name="MissingSwitchDefault"/>
-        <module name="RedundantThrows"/>
+        <!-- <module name="RedundantThrows"/> -->
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
 
@@ -174,7 +184,10 @@
         <!-- <module name="FinalClass"/> -->
         <module name="HideUtilityClassConstructor"/>
         <module name="InterfaceIsType"/>
-        <module name="VisibilityModifier"/>
+        <module name="VisibilityModifier">
+            <property name="packageAllowed" value="true" />
+            <property name="protectedAllowed" value="true" />
+        </module>
 
 
         <!-- Miscellaneous other checks.                   -->
@@ -187,5 +200,6 @@
     </module>
 
     <module name="SuppressionCommentFilter"/>
+    <module name="SuppressWarningsFilter"/>
 
 </module>

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -29,6 +29,6 @@ public interface StringToCalendarMapper {
 
     StringToCalendarMapper INSTANCE = Mappers.getMapper( StringToCalendarMapper.class );
 
-    @Mapping( source = "prop", dateFormat = "dd.MM.yyyy" )
+    @Mapping( target = "prop", dateFormat = "dd.MM.yyyy" )
     CalendarProperty map( StringProperty source);
 }

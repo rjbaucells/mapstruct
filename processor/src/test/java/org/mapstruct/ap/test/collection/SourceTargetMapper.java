@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -20,6 +20,8 @@ package org.mapstruct.ap.test.collection;
 
 import java.util.Set;
 
+import org.mapstruct.InheritConfiguration;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -35,20 +37,25 @@ public interface SourceTargetMapper {
         @Mapping(source = "integerList", target = "integerCollection"),
         @Mapping(source = "integerSet", target = "set"),
         @Mapping(source = "anotherIntegerSet", target = "anotherStringSet"),
-        @Mapping(source = "stringList2", target = "stringListNoSetter")
+        @Mapping(source = "stringList2", target = "stringListNoSetter"),
+        @Mapping(source = "stringSet2", target = "stringListNoSetter2")
     })
     Target sourceToTarget(Source source);
 
+    @InheritInverseConfiguration( name = "sourceToTarget" )
     Source targetToSource(Target target);
 
-    Target sourceToTarget(Source source, @MappingTarget Target target);
+    @InheritConfiguration
+    Target sourceToTargetTwoArg(Source source, @MappingTarget Target target);
 
     Set<String> integerSetToStringSet(Set<Integer> integers);
 
+    @InheritInverseConfiguration
     Set<Integer> stringSetToIntegerSet(Set<String> strings);
 
     Set<String> colourSetToStringSet(Set<Colour> colours);
 
+    @InheritInverseConfiguration
     Set<Colour> stringSetToColourSet(Set<String> colours);
 
     Set<Number> integerSetToNumberSet(Set<Integer> integers);

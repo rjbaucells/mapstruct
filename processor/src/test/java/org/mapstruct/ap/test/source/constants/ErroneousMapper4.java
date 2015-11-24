@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -33,6 +33,7 @@ public interface ErroneousMapper4 {
 
     @Mappings({
         @Mapping(target = "stringConstant", constant = "stringConstant"),
+        @Mapping(target = "emptyStringConstant", constant = ""),
         @Mapping(source = "test", target = "integerConstant", expression = "java('test')"),
         @Mapping(target = "longWrapperConstant", constant = "3001"),
         @Mapping(target = "dateConstant", dateFormat = "dd-MM-yyyy", constant = "09-01-2014"),

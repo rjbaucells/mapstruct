@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
- Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  and/or other contributors as indicated by the @authors tag. See the
  copyright.txt file in the distribution for a full listing of all
  contributors.
@@ -45,8 +45,8 @@
         </dependency>
 
         <!-- Compile-only; Using "provided" scope as there is no such scope in Maven;
-             these dependencies are not required at runtime, only for prism generation
-             and tests -->
+        these dependencies are not required at runtime, only for prism generation
+        and tests -->
         <dependency>
             <groupId>com.jolira</groupId>
             <artifactId>hickory</artifactId>
@@ -57,7 +57,12 @@
             <artifactId>mapstruct</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>tycho-compiler-jdt</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
         <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
@@ -75,8 +80,37 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- plexus-container-default is a runtime-dependency of the tyco-compiler -->
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-container-default</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -87,32 +121,95 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <systemPropertyVariables>
-                        <mapper.test.output.dir>compilation-tests_fork-${surefire.forkNumber}</mapper.test.output.dir>
-                    </systemPropertyVariables>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-mapstruct-license</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/META-INF</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/..</directory>
+                                    <filtering>false</filtering>
+                                    <include>LICENSE.txt</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>processor-deps-shading</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <filters>
+                                <filter>
+                                    <artifact>org.freemarker:freemarker</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>freemarker</pattern>
+                                    <shadedPattern>org.mapstruct.ap.shaded.freemarker</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy</id>
-                        <phase>generate-test-resources</phase>
+                        <id>unpack-freemarker-license</id>
+                        <phase>prepare-package</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>unpack</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/test-dependencies
-                            </outputDirectory>
-                            <stripVersion>true</stripVersion>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.freemarker</groupId>
+                                    <artifactId>freemarker</artifactId>
+                                    <outputDirectory>${project.build.directory}/classes/META-INF/freemarker</outputDirectory>
+                                    <includes>META-INF/LICENSE.txt,META-INF/NOTICE.txt</includes>
+                                </artifactItem>
+                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
@@ -141,6 +238,11 @@
                         <groupId>com.jolira</groupId>
                         <artifactId>hickory</artifactId>
                         <version>${com.jolira.hickory.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.tycho</groupId>
+                        <artifactId>tycho-compiler-jdt</artifactId>
+                        <version>${org.eclipse.tyco.compiler-jdt.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>

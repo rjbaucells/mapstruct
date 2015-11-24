@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -38,6 +38,9 @@ public class ReferencedCustomMapper {
         }
         else if ( clazz == SomeOtherType.class ) {
             return (T) new SomeOtherType( string );
+        }
+        else if ( clazz == GenericWrapper.class ) {
+            return (T) new GenericWrapper<String>( string );
         }
 
         return null;

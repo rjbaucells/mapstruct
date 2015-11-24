@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -31,16 +31,23 @@ import static org.fest.assertions.Assertions.assertThat;
  *
  * @author Gunnar Morling
  */
-@WithClasses( { Source.class, Target.class, SourceTargetMapper.class, AbstractBaseMapper.class,
+@WithClasses({
+    Source.class, Target.class, SourceTargetMapper.class, AbstractBaseMapper.class,
     BaseMapperInterface.class,
     ReferencedMapper.class,
     AbstractReferencedMapper.class,
-    ReferencedMapperInterface.class } )
-@RunWith( AnnotationProcessorTestRunner.class )
+    ReferencedMapperInterface.class,
+    AbstractDto.class,
+    Identifiable.class,
+    HasId.class,
+    AlsoHasId.class,
+    Measurable.class
+})
+@RunWith(AnnotationProcessorTestRunner.class)
 public class AbstractClassTest {
 
     @Test
-    @IssueKey( "64" )
+    @IssueKey("64")
     public void shouldCreateImplementationOfAbstractMethod() {
         Source source = new Source();
 
@@ -48,7 +55,7 @@ public class AbstractClassTest {
     }
 
     @Test
-    @IssueKey( "165" )
+    @IssueKey("165")
     public void shouldCreateImplementationOfMethodFromSuper() {
         Source source = new Source();
 
@@ -56,7 +63,7 @@ public class AbstractClassTest {
     }
 
     @Test
-    @IssueKey( "165" )
+    @IssueKey("165")
     public void shouldCreateImplementationOfMethodFromInterface() {
         Source source = new Source();
 
@@ -69,5 +76,6 @@ public class AbstractClassTest {
         assertThat( target.getBirthday() ).isEqualTo( "Birthday: 26.04.1948" );
         assertThat( target.getManuallyConverted() ).isEqualTo( 42 );
         assertThat( target.isNotAttractingEqualsMethod() ).isTrue();
+        assertThat( target.getId() ).isEqualTo( 42L );
     }
 }

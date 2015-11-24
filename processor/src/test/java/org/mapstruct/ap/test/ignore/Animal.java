@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -23,14 +23,16 @@ public class Animal {
     private String name;
     private int size;
     private Integer age;
+    private String colour;
 
     public Animal() {
     }
 
-    public Animal(String name, int size, Integer age) {
+    public Animal(String name, int size, Integer age, String colour) {
         this.name = name;
         this.size = size;
         this.age = age;
+        this.colour = colour;
     }
 
     public String getName() {
@@ -56,4 +58,13 @@ public class Animal {
     public void setAge(Integer age) {
         this.age = age;
     }
+
+    public String getColour() {
+        return colour;
+    }
+
+    public void setColour( String colour ) {
+        this.colour = colour;
+    }
+
 }

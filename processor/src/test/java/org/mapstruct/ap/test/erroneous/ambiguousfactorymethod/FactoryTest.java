@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -44,14 +44,13 @@ public class FactoryTest {
     @ExpectedCompilationOutcome(
         value = CompilationResult.FAILED,
         diagnostics = {
-            @Diagnostic(type = BarFactory.class,
+            @Diagnostic(type = SourceTargetMapperAndBarFactory.class,
                 kind = javax.tools.Diagnostic.Kind.ERROR,
-                line = 29,
-                messageRegExp = "Ambiguous factory methods: \"org\\.mapstruct\\.ap\\.test\\.erroneous\\."
-                    + "ambiguousfactorymethod\\.Bar createBar\\(\\)\" conflicts with "
-                    + "\"org\\.mapstruct\\.ap\\.test\\.erroneous\\.ambiguousfactorymethod\\.Bar "
-                    + "org\\.mapstruct\\.ap\\.test\\.erroneous\\.ambiguousfactorymethod"
-                    + "\\.a\\.BarFactory\\.createBar\\(\\)\"\\")
+                line = 35,
+                messageRegExp = "Ambiguous factory methods found for creating "
+                        + "org.mapstruct.ap.test.erroneous.ambiguousfactorymethod.Bar: "
+                        + "org.mapstruct.ap.test.erroneous.ambiguousfactorymethod.Bar createBar\\(\\), "
+                        + "org.mapstruct.ap.test.erroneous.ambiguousfactorymethod.Bar .*BarFactory.createBar\\(\\)." )
         }
     )
     public void shouldUseTwoFactoryMethods() {

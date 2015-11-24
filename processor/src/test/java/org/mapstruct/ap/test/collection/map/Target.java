@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,11 +18,15 @@
  */
 package org.mapstruct.ap.test.collection.map;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.mapstruct.ap.test.collection.map.other.ImportedType;
 
 public class Target {
 
     private Map<String, String> values;
+    private LinkedHashMap<String, ImportedType> stringEnumMap;
 
     public Map<String, String> getValues() {
         return values;
@@ -30,5 +34,13 @@ public class Target {
 
     public void setValues(Map<String, String> values) {
         this.values = values;
+    }
+
+    public LinkedHashMap<String, ImportedType> getStringEnumMap() {
+        return stringEnumMap;
+    }
+
+    public void setStringEnumMap(LinkedHashMap<String, ImportedType> stringEnumMap) {
+        this.stringEnumMap = stringEnumMap;
     }
 }

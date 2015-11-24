@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,18 +18,19 @@
  */
 package org.mapstruct.ap.test.source.expressions.java;
 
-import org.mapstruct.ap.test.source.expressions.java.mapper.TimeAndFormat;
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mapstruct.ap.test.source.expressions.java.mapper.TimeAndFormat;
+import org.mapstruct.ap.testutil.IssueKey;
 import org.mapstruct.ap.testutil.WithClasses;
 import org.mapstruct.ap.testutil.runner.AnnotationProcessorTestRunner;
-
-import static org.fest.assertions.Assertions.assertThat;
-import org.mapstruct.ap.testutil.IssueKey;
 
 /**
  * @author Sjaak Derksen
@@ -75,7 +76,6 @@ public class JavaExpressionTest {
         Source2 source2 = new Source2();
         source2.setAnotherProp( "test" );
 
-
         Target target = SourceTargetMapperSeveralSources.INSTANCE.sourceToTarget( source1, source2 );
 
         assertThat( target ).isNotNull();
@@ -83,7 +83,6 @@ public class JavaExpressionTest {
         assertThat( target.getTimeAndFormat().getFormat() ).isEqualTo( format );
         assertThat( target.getAnotherProp() ).isEqualTo( "test" );
     }
-
 
     private Date getTime(String format, String date) throws ParseException {
         SimpleDateFormat dateFormat = new SimpleDateFormat( format );
@@ -102,7 +101,6 @@ public class JavaExpressionTest {
         source.setTime( time );
         Target target = new Target();
 
-
         Target target2 = SourceTargetMapper.INSTANCE.sourceToTargetWithMappingTarget( source, target );
 
         assertThat( target ).isNotNull();
@@ -120,7 +118,6 @@ public class JavaExpressionTest {
         BooleanWorkAroundMapper.class
       })
     public void testBooleanGetterWorkAround() throws ParseException {
-
         SourceBooleanWorkAround source = new SourceBooleanWorkAround();
         source.setVal( Boolean.TRUE );
 
@@ -131,7 +128,21 @@ public class JavaExpressionTest {
         SourceBooleanWorkAround source2 = BooleanWorkAroundMapper.INSTANCE.mapTS( target );
         assertThat( source2 ).isNotNull();
         assertThat( source2.isVal() ).isTrue();
-
     }
 
+    @IssueKey( "305" )
+    @Test
+    @WithClasses({
+        SourceList.class,
+        TargetList.class,
+        SourceTargetListMapper.class
+    })
+    public void testGetterOnly() throws ParseException {
+        SourceList source = new SourceList();
+        source.setList( Arrays.asList( "test1" ) );
+
+        TargetList target = SourceTargetListMapper.INSTANCE.map( source );
+        assertThat( target ).isNotNull();
+        assertThat( target.getList() ).isEqualTo( Arrays.asList( "test2" ) );
+    }
 }

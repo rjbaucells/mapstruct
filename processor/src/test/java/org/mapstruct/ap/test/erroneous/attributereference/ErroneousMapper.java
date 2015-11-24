@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -28,8 +28,7 @@ public interface ErroneousMapper {
     @Mappings({
         @Mapping(source = "bar", target = "foo"),
         @Mapping(source = "source1.foo", target = "foo"),
-        @Mapping(source = "foo", target = "bar"),
-        @Mapping(source = "source.foobar", target = "foo")
+        @Mapping(source = "foo", target = "bar")
     })
     Target sourceToTarget(Source source);
 

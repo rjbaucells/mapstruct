@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -19,6 +19,8 @@
 package org.mapstruct.factory;
 
 import org.mapstruct.Mapper;
+
+import java.util.ServiceLoader;
 
 /**
  * Factory for obtaining mapper instances if no explicit component model such as CDI is configured via
@@ -55,6 +57,7 @@ public class Mappers {
      *
      * @param clazz The type of the mapper to return.
      * @param <T> The type of the mapper to create.
+     *
      * @return An instance of the given mapper type.
      */
     public static <T> T getMapper(Class<T> clazz) {
@@ -72,10 +75,24 @@ public class Mappers {
                 classLoader = Mappers.class.getClassLoader();
             }
 
-            @SuppressWarnings("unchecked")
-            T mapper = (T) classLoader.loadClass( clazz.getName() + IMPLEMENTATION_SUFFIX ).newInstance();
+            try {
+                @SuppressWarnings("unchecked")
+                T mapper = (T) classLoader.loadClass( clazz.getName() + IMPLEMENTATION_SUFFIX ).newInstance();
+                return mapper;
+            }
+            catch (ClassNotFoundException e) {
+                ServiceLoader<T> loader = ServiceLoader.load( clazz, classLoader );
 
-            return mapper;
+                if ( loader != null ) {
+                    for ( T mapper : loader ) {
+                        if ( mapper != null ) {
+                            return mapper;
+                        }
+                    }
+                }
+
+                throw new ClassNotFoundException("Cannot find implementation for " + clazz.getName());
+            }
         }
         catch ( Exception e ) {
             throw new RuntimeException( e );

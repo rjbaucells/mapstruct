@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -63,7 +63,8 @@ public class JavaFileAssert extends FileAssert {
      * @param importedClass the class expected to be imported in this Java file
      */
     public void containsImportFor(Class<?> importedClass) {
-        content().contains( "import " + importedClass.getName() + ";" );
+
+        content().contains( getClassImportDeclaration( importedClass ) );
     }
 
     /**
@@ -72,6 +73,23 @@ public class JavaFileAssert extends FileAssert {
      * @param importedClass the class expected not to be imported in this Java file
      */
     public void containsNoImportFor(Class<?> importedClass) {
-        content().doesNotContain( "import " + importedClass.getName() + ";" );
+        content().doesNotContain( getClassImportDeclaration( importedClass ) );
+    }
+
+    /**
+     * Build a class import declaration string.
+     *
+     * @param importedClass
+     * @return
+     */
+    private String getClassImportDeclaration(Class<?> importedClass) {
+        String classname = importedClass.getName();
+        if ( importedClass.isMemberClass() ) {
+            // Member-Class name: a.b.Outer$Inner
+            // Import declaration: import a.b.Outer.Inner
+            classname = classname.replace( '$', '.' );
+        }
+
+        return "import " + classname + ";";
     }
 }

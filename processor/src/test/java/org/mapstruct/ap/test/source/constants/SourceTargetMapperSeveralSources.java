@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -32,8 +32,8 @@ public interface SourceTargetMapperSeveralSources {
     SourceTargetMapperSeveralSources INSTANCE = Mappers.getMapper( SourceTargetMapperSeveralSources.class );
 
     @Mappings({
-        @Mapping(source = "someProp", target = "someProp" ),
-        @Mapping(source = "anotherProp", target = "anotherProp" ),
+        @Mapping(source = "s1.someProp", target = "someProp" ),
+        @Mapping(source = "s2.anotherProp", target = "anotherProp" ),
         @Mapping(target = "someConstant", constant = "stringConstant"),
     })
     Target2 sourceToTarget(Source1 s1, Source2 s2);

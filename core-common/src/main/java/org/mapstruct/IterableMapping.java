@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,6 +18,7 @@
  */
 package org.mapstruct;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -28,10 +29,13 @@ import java.util.Date;
 /**
  * Configures the mapping between two iterable types, e.g. {@code List<String>} and {@code List<Date>}.
  *
+ * <p>Note: either  @IterableMapping#dateFormat, @IterableMapping#resultType or @IterableMapping#qualifiedBy
+ * must be specified</p>
+ *
  * @author Gunnar Morling
  */
 @Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS)
 public @interface IterableMapping {
 
     /**
@@ -40,5 +44,34 @@ public @interface IterableMapping {
      *
      * @return A date format string as processable by {@link SimpleDateFormat}.
      */
-    String dateFormat();
+    String dateFormat() default "";
+
+    /**
+     * A qualifier can be specified to aid the selection process of a suitable mapper. This is useful in case multiple
+     * mappers (hand written of internal) qualify and result in an 'Ambiguous mapping methods found' error.
+     *
+     * A qualifier is a custom annotation and can be placed on either a hand written mapper class or a method.
+     *
+     * @return the qualifiers
+     */
+    Class<? extends Annotation>[] qualifiedBy() default { };
+
+    /**
+     * Specifies the type of the element to be used in the result of the mapping method in case multiple mapping
+     * methods qualify.
+     *
+     * @return the elementTargetType to select
+     */
+    Class<?> elementTargetType() default void.class;
+
+
+    /**
+     * The strategy to be applied when {@code null} is passed as source value to this iterable mapping. If no
+     * strategy is configured, the strategy given via {@link MapperConfig#nullValueMappingStrategy()} or
+     * {@link Mapper#nullValueMappingStrategy()} will be applied, using {@link NullValueMappingStrategy#RETURN_NULL}
+     * by default.
+     *
+     * @return The strategy to be applied when {@code null} is passed as source value to the methods of this mapping.
+     */
+    NullValueMappingStrategy nullValueMappingStrategy() default NullValueMappingStrategy.RETURN_NULL;
 }

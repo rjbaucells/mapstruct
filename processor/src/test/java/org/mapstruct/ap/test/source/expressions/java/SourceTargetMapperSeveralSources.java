@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -34,7 +34,7 @@ public interface SourceTargetMapperSeveralSources {
 
     @Mappings( {
         @Mapping( target = "timeAndFormat", expression = "java( new TimeAndFormat( s.getTime(), s.getFormat() ))" ),
-        @Mapping( source = "anotherProp", target = "anotherProp" )
+        @Mapping( source = "s1.anotherProp", target = "anotherProp" )
     } )
     Target sourceToTarget( Source s, Source2 s1 );
 }

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -21,6 +21,7 @@ package org.mapstruct.ap.test.conversion.date;
 import java.util.Date;
 import java.util.List;
 
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -31,13 +32,27 @@ public interface SourceTargetMapper {
 
     SourceTargetMapper INSTANCE = Mappers.getMapper( SourceTargetMapper.class );
 
-    @Mapping(source = "date", dateFormat = "dd.MM.yyyy")
+    @Mapping(target = "date", dateFormat = "dd.MM.yyyy")
     Target sourceToTarget(Source source);
 
+    @InheritInverseConfiguration
     Source targetToSource(Target target);
 
     @IterableMapping(dateFormat = "dd.MM.yyyy")
     List<String> stringListToDateList(List<Date> dates);
 
+    @IterableMapping(dateFormat = "dd.MM.yyyy")
+    String[] stringListToDateArray(List<Date> dates);
+
+    @InheritInverseConfiguration
     List<Date> dateListToStringList(List<String> strings);
+
+    @InheritInverseConfiguration
+    List<Date> stringArrayToDateList(String[] dates);
+
+    @IterableMapping(dateFormat = "dd.MM.yyyy")
+    String[] dateArrayToStringArray(Date[] dates);
+
+    @InheritInverseConfiguration
+    Date[] stringArrayToDateArray(String[] dates);
 }

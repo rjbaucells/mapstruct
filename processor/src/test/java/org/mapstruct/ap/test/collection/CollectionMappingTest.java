@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -131,7 +131,7 @@ public class CollectionMappingTest {
         source.setOtherStringList( Arrays.asList( "Bob" ) );
         List<String> originalInstance = target.getOtherStringList();
 
-        SourceTargetMapper.INSTANCE.sourceToTarget( source, target );
+        SourceTargetMapper.INSTANCE.sourceToTargetTwoArg( source, target );
 
         assertThat( target.getOtherStringList() ).isSameAs( originalInstance );
         assertThat( target.getOtherStringList() ).containsExactly( "Bob" );
@@ -359,7 +359,7 @@ public class CollectionMappingTest {
         TestMap.setPuttAllCalled( false );
         target.setOtherStringLongMap( originalInstance );
 
-        SourceTargetMapper.INSTANCE.sourceToTarget( source, target );
+        SourceTargetMapper.INSTANCE.sourceToTargetTwoArg( source, target );
 
         assertThat( target.getOtherStringLongMap() ).isSameAs( originalInstance );
         assertThat( target.getOtherStringLongMap() ).hasSize( 1 );

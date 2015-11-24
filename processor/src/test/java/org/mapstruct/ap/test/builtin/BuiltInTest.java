@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,8 +18,8 @@
  */
 package org.mapstruct.ap.test.builtin;
 
-import org.mapstruct.ap.test.builtin.target.TargetWithSqlDate;
 import org.mapstruct.ap.test.builtin.mapper.SourceTargetWithSqlDateMapper;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,6 +31,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -41,6 +42,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mapstruct.ap.test.builtin._target.IterableTarget;
+import org.mapstruct.ap.test.builtin._target.MapTarget;
+import org.mapstruct.ap.test.builtin._target.TargetWithDate;
+import org.mapstruct.ap.test.builtin._target.TargetWithSqlDate;
 import org.mapstruct.ap.test.builtin.bean.CalendarProperty;
 import org.mapstruct.ap.test.builtin.bean.DateProperty;
 import org.mapstruct.ap.test.builtin.bean.JaxbElementListProperty;
@@ -66,9 +71,6 @@ import org.mapstruct.ap.test.builtin.mapper.XmlGregCalToStringMapper;
 import org.mapstruct.ap.test.builtin.source.IterableSource;
 import org.mapstruct.ap.test.builtin.source.MapSource;
 import org.mapstruct.ap.test.builtin.source.SourceWithDate;
-import org.mapstruct.ap.test.builtin.target.IterableTarget;
-import org.mapstruct.ap.test.builtin.target.MapTarget;
-import org.mapstruct.ap.test.builtin.target.TargetWithDate;
 import org.mapstruct.ap.testutil.IssueKey;
 import org.mapstruct.ap.testutil.WithClasses;
 import org.mapstruct.ap.testutil.compilation.annotation.CompilationResult;
@@ -112,6 +114,7 @@ public class BuiltInTest {
     }
 
     @Test
+    @IssueKey( "141" )
     @WithClasses({ JaxbElementListProperty.class, StringListProperty.class, JaxbListMapper.class })
     public void shouldApplyBuiltInOnJAXBElementList() throws ParseException, DatatypeConfigurationException {
 
@@ -162,12 +165,18 @@ public class BuiltInTest {
         assertThat( target.getProp() ).isNotNull();
         assertThat( target.getProp().toString() ).isEqualTo( "1999-07-05T00:00:00.000+02:00" );
 
-        source.setProp( createLocaleDate( "31-08-1982 10:20:56" ) );
-
+        // direct,via lexical representation
+        source.setProp( "2000-03-04T23:00:00+03:00" );
         target = StringToXmlGregCalMapper.INSTANCE.map( source );
         assertThat( target ).isNotNull();
         assertThat( target.getProp() ).isNotNull();
-        assertThat( target.getProp().toString() ).isEqualTo( "1982-08-31T10:20:00.000+02:00" );
+        assertThat( target.getProp().toString() ).isEqualTo( "2000-03-04T23:00:00+03:00" );
+
+        // null string
+        source.setProp( null );
+        target = StringToXmlGregCalMapper.INSTANCE.map( source );
+        assertThat( target ).isNotNull();
+        assertThat( target.getProp() ).isNull();
 
     }
 

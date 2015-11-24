@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -21,6 +21,7 @@ package org.mapstruct.ap.test.conversion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -33,6 +34,6 @@ public interface SourceTargetMapper {
         @Mapping(source = "baz", target = "qax")
     })
     Target sourceToTarget(Source source);
-
+    @InheritInverseConfiguration
     Source targetToSource(Target target);
 }

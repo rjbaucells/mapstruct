@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -22,17 +22,19 @@ import java.util.Calendar;
 
 import javax.xml.ws.Holder;
 
-public class Source {
+public class Source extends AbstractDto implements HasId, AlsoHasId {
 
     private final int size;
     private final Calendar birthday;
     private final String notAttractingEqualsMethod = "no way";
-    private final Holder<String> manuallyConverted = new Holder<String>("What is the answer?");
+    private final Holder<String> manuallyConverted = new Holder<String>( "What is the answer?" );
 
     public Source() {
         size = 181;
         birthday = Calendar.getInstance();
         birthday.set( 1948, 3, 26 );
+
+        super.setId( 42L );
     }
 
     public int getSize() {

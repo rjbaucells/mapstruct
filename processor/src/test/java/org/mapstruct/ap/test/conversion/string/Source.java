@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -36,6 +36,7 @@ public class Source {
     private Boolean boolBool;
     private char c;
     private Character cc;
+    private Object object;
 
     public byte getB() {
         return b;
@@ -163,5 +164,13 @@ public class Source {
 
     public void setCc(Character cc) {
         this.cc = cc;
+    }
+
+    public Object getObject() {
+        return object;
+    }
+
+    public void setObject(Object object) {
+        this.object = object;
     }
 }

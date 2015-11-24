@@ -3,6 +3,16 @@ Contributors
 
 Andreas Gudian
 Christian Schuster
+Christophe Labouisse
+Dilip Krishnan
+Ewald Volkert
 Gunnar Morling
+Ivo Smid
+Michael Pardo
+Mustafa Caylak
+Paul Strugnell
+Remko Plantenga
+Sebastian Hasait
 Sjaak Derksen
 Timo Eckhardt
+Tomek Gubala

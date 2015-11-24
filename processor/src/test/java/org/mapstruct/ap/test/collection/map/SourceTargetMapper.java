@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -24,6 +24,7 @@ import java.util.Map;
 import org.mapstruct.MapMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = CustomNumberMapper.class)
@@ -33,7 +34,7 @@ public interface SourceTargetMapper {
 
     @MapMapping(valueDateFormat = "dd.MM.yyyy")
     Map<String, String> longDateMapToStringStringMap(Map<Long, Date> source);
-
+    @InheritInverseConfiguration
     Map<Long, Date> stringStringMapToLongDateMap(Map<String, String> source);
 
     @MapMapping(valueDateFormat = "dd.MM.yyyy")
@@ -45,7 +46,7 @@ public interface SourceTargetMapper {
                                                                               @MappingTarget Map<Long, Date> target);
 
     Target sourceToTarget(Source source);
-
+    @InheritInverseConfiguration
     Source targetToSource(Target target);
 
     Map<Number, Number> intIntToNumberNumberMap(Map<Integer, Integer> source);

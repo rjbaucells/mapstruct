@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,6 +18,8 @@
  */
 package org.mapstruct.ap;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,13 +41,14 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementKindVisitor6;
 import javax.tools.Diagnostic.Kind;
 
-import org.mapstruct.ap.model.Mapper;
-import org.mapstruct.ap.option.Options;
-import org.mapstruct.ap.option.ReportingPolicy;
-import org.mapstruct.ap.processor.DefaultModelElementProcessorContext;
-import org.mapstruct.ap.processor.ModelElementProcessor;
-import org.mapstruct.ap.processor.ModelElementProcessor.ProcessorContext;
-import org.mapstruct.ap.util.AnnotationProcessingException;
+import org.mapstruct.ap.internal.model.Mapper;
+import org.mapstruct.ap.internal.option.Options;
+import org.mapstruct.ap.internal.option.ReportingPolicy;
+import org.mapstruct.ap.internal.prism.MapperPrism;
+import org.mapstruct.ap.internal.processor.DefaultModelElementProcessorContext;
+import org.mapstruct.ap.internal.processor.ModelElementProcessor;
+import org.mapstruct.ap.internal.processor.ModelElementProcessor.ProcessorContext;
+import org.mapstruct.ap.internal.util.AnnotationProcessingException;
 
 /**
  * A JSR 269 annotation {@link Processor} which generates the implementations for mapper interfaces (interfaces
@@ -82,6 +85,7 @@ import org.mapstruct.ap.util.AnnotationProcessingException;
 @SupportedAnnotationTypes("org.mapstruct.Mapper")
 @SupportedOptions({
     MappingProcessor.SUPPRESS_GENERATOR_TIMESTAMP,
+    MappingProcessor.SUPPRESS_GENERATOR_VERSION_INFO_COMMENT,
     MappingProcessor.UNMAPPED_TARGET_POLICY,
     MappingProcessor.DEFAULT_COMPONENT_MODEL
 })
@@ -92,9 +96,12 @@ public class MappingProcessor extends AbstractProcessor {
      */
     private static final boolean ANNOTATIONS_CLAIMED_EXCLUSIVELY = false;
 
-    protected static final String SUPPRESS_GENERATOR_TIMESTAMP = "suppressGeneratorTimestamp";
-    protected static final String UNMAPPED_TARGET_POLICY = "unmappedTargetPolicy";
-    protected static final String DEFAULT_COMPONENT_MODEL = "defaultComponentModel";
+    protected static final String SUPPRESS_GENERATOR_TIMESTAMP = "mapstruct.suppressGeneratorTimestamp";
+    protected static final String SUPPRESS_GENERATOR_VERSION_INFO_COMMENT =
+        "mapstruct.suppressGeneratorVersionInfoComment";
+    protected static final String UNMAPPED_TARGET_POLICY = "mapstruct.unmappedTargetPolicy";
+    protected static final String DEFAULT_COMPONENT_MODEL = "mapstruct.defaultComponentModel";
+    protected static final String ALWAYS_GENERATE_SERVICE_FILE = "mapstruct.alwaysGenerateServicesFile";
 
     private Options options;
 
@@ -107,11 +114,14 @@ public class MappingProcessor extends AbstractProcessor {
 
     private Options createOptions() {
         String unmappedTargetPolicy = processingEnv.getOptions().get( UNMAPPED_TARGET_POLICY );
+        String defaultComponentModel = processingEnv.getOptions().get( DEFAULT_COMPONENT_MODEL );
 
         return new Options(
             Boolean.valueOf( processingEnv.getOptions().get( SUPPRESS_GENERATOR_TIMESTAMP ) ),
+            Boolean.valueOf( processingEnv.getOptions().get( SUPPRESS_GENERATOR_VERSION_INFO_COMMENT ) ),
             unmappedTargetPolicy != null ? ReportingPolicy.valueOf( unmappedTargetPolicy ) : null,
-            processingEnv.getOptions().get( DEFAULT_COMPONENT_MODEL )
+            defaultComponentModel == null ? "default" : defaultComponentModel,
+            Boolean.valueOf( processingEnv.getOptions().get( ALWAYS_GENERATE_SERVICE_FILE ) )
         );
     }
 
@@ -131,20 +141,51 @@ public class MappingProcessor extends AbstractProcessor {
                 continue;
             }
 
-            for ( Element mapperElement : roundEnvironment.getElementsAnnotatedWith( annotation ) ) {
-                TypeElement mapperTypeElement = asTypeElement( mapperElement );
+            Set<? extends Element> elementsWithAnnotation;
+            try {
+                elementsWithAnnotation = roundEnvironment.getElementsAnnotatedWith( annotation );
+            }
+            catch ( Throwable t ) { // whenever that may happen, but just to stay on the save side
+                handleUncaughtError( annotation, t );
+                continue;
+            }
 
-                // create a new context for each generated mapper in order to have imports of referenced types
-                // correctly managed;
-                // note that this assumes that a new source file is created for each mapper which must not
-                // necessarily be the case, e.g. in case of several mapper interfaces declared as inner types
-                // of one outer interface
-                ProcessorContext context = new DefaultModelElementProcessorContext( processingEnv, options );
-                processMapperTypeElement( context, mapperTypeElement );
+            for ( Element mapperElement : elementsWithAnnotation ) {
+                try {
+                    TypeElement mapperTypeElement = asTypeElement( mapperElement );
+
+                    // on some JDKs, RoundEnvironment.getElementsAnnotatedWith( ... ) returns types with
+                    // annotations unknown to the compiler, even though they are not declared Mappers
+                    if ( mapperTypeElement == null || MapperPrism.getInstanceOn( mapperTypeElement ) == null ) {
+                        continue;
+                    }
+
+                    // create a new context for each generated mapper in order to have imports of referenced types
+                    // correctly managed;
+                    // note that this assumes that a new source file is created for each mapper which must not
+                    // necessarily be the case, e.g. in case of several mapper interfaces declared as inner types
+                    // of one outer interface
+                    ProcessorContext context = new DefaultModelElementProcessorContext( processingEnv, options );
+                    processMapperTypeElement( context, mapperTypeElement );
+                }
+                catch ( Throwable t ) {
+                    handleUncaughtError( mapperElement, t );
+                    break;
+                }
             }
         }
 
         return ANNOTATIONS_CLAIMED_EXCLUSIVELY;
+    }
+
+    private void handleUncaughtError(Element element, Throwable thrown) {
+        StringWriter sw = new StringWriter();
+        thrown.printStackTrace( new PrintWriter( sw ) );
+
+        String reportableStacktrace = sw.toString().replace( System.getProperty( "line.separator" ), "  " );
+
+        processingEnv.getMessager().printMessage(
+            Kind.ERROR, "Internal error in the mapping processor: " + reportableStacktrace, element );
     }
 
     /**

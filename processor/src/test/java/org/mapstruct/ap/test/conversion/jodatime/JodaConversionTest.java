@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -19,6 +19,7 @@
 package org.mapstruct.ap.test.conversion.jodatime;
 
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import org.joda.time.DateTime;
@@ -26,6 +27,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mapstruct.ap.testutil.IssueKey;
@@ -43,6 +45,11 @@ import static org.fest.assertions.Assertions.assertThat;
 @WithClasses({ Source.class, Target.class, SourceTargetMapper.class })
 @IssueKey("75")
 public class JodaConversionTest {
+
+    @Before
+    public void setDefaultLocale() {
+        Locale.setDefault( Locale.GERMAN );
+    }
 
     @Test
     public void testDateTimeToString() {
@@ -100,10 +107,10 @@ public class JodaConversionTest {
         // and now with default mappings
         target = SourceTargetMapper.INSTANCE.sourceToTargetDefaultMapping( src );
         assertThat( target ).isNotNull();
-        assertThat( target.getDateTime() ).isEqualTo( "01.01.2014 00:00 UTC" );
-        assertThat( target.getLocalDateTime() ).isEqualTo( "01.01.2014 00:00" );
-        assertThat( target.getLocalDate() ).isEqualTo( "01.01.2014" );
-        assertThat( target.getLocalTime() ).isEqualTo( "00:00" );
+        assertThat( target.getDateTime() ).isEqualTo( "1. Januar 2014 00:00:00 UTC" );
+        assertThat( target.getLocalDateTime() ).isEqualTo( "1. Januar 2014 00:00:00" );
+        assertThat( target.getLocalDate() ).isEqualTo( "1. Januar 2014" );
+        assertThat( target.getLocalTime() ).isEqualTo( "00:00:00" );
     }
 
     @Test
@@ -196,10 +203,22 @@ public class JodaConversionTest {
         src.setDateTimeForCalendarConversion( dateTimeWithCalendar );
         Target target = SourceTargetMapper.INSTANCE.sourceToTarget( src );
         assertThat( target ).isNotNull();
-        assertThat( target.getDateTimeForCalendarConversion() ).isEqualTo( calendar );
+        assertThat( target.getDateTimeForCalendarConversion().getTime() ).isEqualTo( calendar.getTime() );
 
         Source mappedSource = SourceTargetMapper.INSTANCE.targetToSource( target );
         assertThat( mappedSource ).isNotNull();
         assertThat( mappedSource.getDateTimeForCalendarConversion() ).isEqualTo( dateTimeWithCalendar );
+    }
+
+    @Test
+    @WithClasses({ StringToLocalDateMapper.class, SourceWithStringDate.class, TargetWithLocalDate.class })
+    @IssueKey("456")
+    public void testStringToLocalDateUsingDefaultFormat() {
+        SourceWithStringDate source = new SourceWithStringDate();
+        source.setDate( "19. November 2014" );
+
+        TargetWithLocalDate target = StringToLocalDateMapper.INSTANCE.sourceToTarget( source );
+
+        assertThat( target.getDate() ).isEqualTo( new LocalDate( 2014, 11, 19 ) );
     }
 }

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,6 +18,7 @@
  */
 package org.mapstruct.ap.test.conversion.java8time;
 
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -38,43 +39,48 @@ public interface SourceTargetMapper {
     String LOCAL_TIME_FORMAT = "HH:mm";
 
     SourceTargetMapper INSTANCE = Mappers.getMapper( SourceTargetMapper.class );
-    @Mappings( { @Mapping( source = "zonedDateTime", dateFormat = DATE_TIME_FORMAT ),
-                    @Mapping( source = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT ),
-                    @Mapping( source = "localDate", dateFormat = LOCAL_DATE_FORMAT ),
-                    @Mapping( source = "localTime", dateFormat = LOCAL_TIME_FORMAT ) } )
+    @Mappings( { @Mapping( target = "zonedDateTime", dateFormat = DATE_TIME_FORMAT ),
+                    @Mapping( target = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT ),
+                    @Mapping( target = "localDate", dateFormat = LOCAL_DATE_FORMAT ),
+                    @Mapping( target = "localTime", dateFormat = LOCAL_TIME_FORMAT ) } )
     Target sourceToTarget(Source source);
 
+    @Mappings( { @Mapping( target = "zonedDateTime", dateFormat = DATE_TIME_FORMAT ),
+                    @Mapping( target = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT ),
+                    @Mapping( target = "localDate", dateFormat = LOCAL_DATE_FORMAT ),
+                    @Mapping( target = "localTime", dateFormat = LOCAL_TIME_FORMAT ) } )
     Target sourceToTargetDefaultMapping(Source source);
 
-    @Mapping( source = "zonedDateTime", dateFormat = DATE_TIME_FORMAT )
+    @Mapping( target = "zonedDateTime", dateFormat = DATE_TIME_FORMAT )
     Target sourceToTargetDateTimeMapped(Source source);
 
-    @Mapping( source = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT )
+    @Mapping( target = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT )
     Target sourceToTargetLocalDateTimeMapped(Source source);
 
-    @Mapping( source = "localDate", dateFormat = LOCAL_DATE_FORMAT )
+    @Mapping( target = "localDate", dateFormat = LOCAL_DATE_FORMAT )
     Target sourceToTargetLocalDateMapped(Source source);
 
-    @Mapping( source = "localTime", dateFormat = LOCAL_TIME_FORMAT )
+    @Mapping( target = "localTime", dateFormat = LOCAL_TIME_FORMAT )
     Target sourceToTargetLocalTimeMapped(Source source);
 
-    @Mappings( { @Mapping( source = "zonedDateTime", dateFormat = DATE_TIME_FORMAT ),
-                    @Mapping( source = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT ),
-                    @Mapping( source = "localDate", dateFormat = LOCAL_DATE_FORMAT ),
-                    @Mapping( source = "localTime", dateFormat = LOCAL_TIME_FORMAT ) } )
+    @Mappings( { @Mapping( target = "zonedDateTime", dateFormat = DATE_TIME_FORMAT ),
+                    @Mapping( target = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT ),
+                    @Mapping( target = "localDate", dateFormat = LOCAL_DATE_FORMAT ),
+                    @Mapping( target = "localTime", dateFormat = LOCAL_TIME_FORMAT ) } )
     Source targetToSource(Target target);
 
-    @Mapping( source = "zonedDateTime", dateFormat = DATE_TIME_FORMAT )
+    @Mapping( target = "zonedDateTime", dateFormat = DATE_TIME_FORMAT )
     Source targetToSourceDateTimeMapped(Target target);
 
-    @Mapping( source = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT )
+    @Mapping( target = "localDateTime", dateFormat = LOCAL_DATE_TIME_FORMAT )
     Source targetToSourceLocalDateTimeMapped(Target target);
 
-    @Mapping( source = "localDate", dateFormat = LOCAL_DATE_FORMAT )
+    @Mapping( target = "localDate", dateFormat = LOCAL_DATE_FORMAT )
     Source targetToSourceLocalDateMapped(Target target);
 
-    @Mapping( source = "localTime", dateFormat = LOCAL_TIME_FORMAT )
+    @Mapping( target = "localTime", dateFormat = LOCAL_TIME_FORMAT )
     Source targetToSourceLocalTimeMapped(Target target);
 
+    @InheritInverseConfiguration( name = "sourceToTarget" )
     Source targetToSourceDefaultMapping(Target target);
 }

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -19,8 +19,8 @@
 package org.mapstruct.ap.test.collection.adder;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.ap.test.collection.adder._target.Target;
 import org.mapstruct.ap.test.collection.adder.source.Source;
-import org.mapstruct.ap.test.collection.adder.target.Target;
 import org.mapstruct.factory.Mappers;
 
 /**

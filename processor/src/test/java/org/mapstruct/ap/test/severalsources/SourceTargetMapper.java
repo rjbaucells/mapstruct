@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -24,21 +24,26 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper( uses = ReferencedMapper.class )
 public interface SourceTargetMapper {
 
     SourceTargetMapper INSTANCE = Mappers.getMapper( SourceTargetMapper.class );
 
     @Mappings({
-        @Mapping(source = "houseNo", target = "houseNumber"),
+        @Mapping(source = "address.houseNo", target = "houseNumber"),
         @Mapping(source = "person.description", target = "description")
     })
     DeliveryAddress personAndAddressToDeliveryAddress(Person person, Address address);
 
     @Mappings({
-        @Mapping(source = "houseNo", target = "houseNumber"),
+        @Mapping(source = "address.houseNo", target = "houseNumber"),
         @Mapping(source = "person.description", target = "description")
     })
     void personAndAddressToDeliveryAddress(Person person, Address address,
                                            @MappingTarget DeliveryAddress deliveryAddress);
+
+    @Mapping( target = "description", source = "person.description")
+    DeliveryAddress personAndAddressToDeliveryAddress(Person person, Integer houseNumber, int zipCode,
+            String street);
+
 }

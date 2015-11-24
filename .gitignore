@@ -13,6 +13,12 @@
 *.iws
 .idea
 
+# Netbeans
+nb-configuration.xml
+
 # Build
-/*/target
+/**/target/
 test-output
+
+# Misc.
+.DS_Store

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -240,12 +240,12 @@ public class Java8TimeConversionTest {
         source = SourceTargetMapper.INSTANCE.targetToSource( target );
 
         assertThat( source.getForDateConversionWithZonedDateTime() ).isEqualTo( dateTime );
-
     }
 
     @Test
     public void testLocalDateTimeToDateMapping() {
-        TimeZone.setDefault( TimeZone.getTimeZone( "UTC" ) );
+        TimeZone.setDefault( TimeZone.getTimeZone( "Australia/Melbourne" ) );
+
         Source source = new Source();
         LocalDateTime dateTime = LocalDateTime.of( 2014, 1, 1, 0, 0 );
         source.setForDateConversionWithLocalDateTime( dateTime );
@@ -266,7 +266,5 @@ public class Java8TimeConversionTest {
         source = SourceTargetMapper.INSTANCE.targetToSource( target );
 
         assertThat( source.getForDateConversionWithLocalDateTime() ).isEqualTo( dateTime );
-
     }
-
 }

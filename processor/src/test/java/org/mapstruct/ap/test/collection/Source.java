@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -49,6 +49,8 @@ public class Source {
     private Map<String, Long> otherStringLongMap;
 
     private List<String> stringList2;
+
+    private Set<String> stringSet2;
 
     public List<String> getStringList() {
         return stringList;
@@ -152,6 +154,14 @@ public class Source {
 
     public void setOtherStringLongMap(Map<String, Long> otherStringLongMap) {
         this.otherStringLongMap = otherStringLongMap;
+    }
+
+    public Set<String> getStringSet2() {
+        return stringSet2;
+    }
+
+    public void setStringSet2(Set<String> stringSet2) {
+        this.stringSet2 = stringSet2;
     }
 
 }

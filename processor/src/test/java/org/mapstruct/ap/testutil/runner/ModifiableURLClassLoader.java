@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -36,6 +36,9 @@ public class ModifiableURLClassLoader extends URLClassLoader {
 
     private static final String ORG_MAPSTRUCT_AP_TEST = "org.mapstruct.ap.test.";
 
+    private static final FilteringParentClassLoader PARENT_CLASS_LOADER = new FilteringParentClassLoader(
+        ORG_MAPSTRUCT_AP_TEST );
+
     static {
         tryRegisterAsParallelCapable();
     }
@@ -43,7 +46,7 @@ public class ModifiableURLClassLoader extends URLClassLoader {
     private final ConcurrentMap<URL, URL> addedURLs = new ConcurrentHashMap<URL, URL>();
 
     public ModifiableURLClassLoader() {
-        super( new URL[] { }, new FilteringParentClassLoader() );
+        super( new URL[] { }, PARENT_CLASS_LOADER );
     }
 
     @Override
@@ -53,9 +56,6 @@ public class ModifiableURLClassLoader extends URLClassLoader {
         }
     }
 
-    /**
-     * @param basePath
-     */
     public void addURL(String basePath) {
         try {
             addURL( new URL( basePath ) );
@@ -96,9 +96,15 @@ public class ModifiableURLClassLoader extends URLClassLoader {
     }
 
     private static final class FilteringParentClassLoader extends ClassLoader {
+        private String excludedPackage;
+
+        public FilteringParentClassLoader(String excludedPackage) {
+            this.excludedPackage = excludedPackage;
+        }
+
         @Override
         protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-            if ( name.startsWith( ORG_MAPSTRUCT_AP_TEST ) ) {
+            if ( name.startsWith( excludedPackage ) ) {
                 return null;
             }
 

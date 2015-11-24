@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -18,6 +18,7 @@
  */
 package org.mapstruct.ap.test.source.constants;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -28,10 +29,11 @@ public class Target {
 
     private String propertyThatShouldBeMapped;
     private String stringConstant;
+    private String emptyStringConstant;
     private int integerConstant;
     private Long longWrapperConstant;
     private Date dateConstant;
-    private List<String> nameConstants;
+    private List<String> nameConstants = new ArrayList<String>();
 
     public String getPropertyThatShouldBeMapped() {
         return propertyThatShouldBeMapped;
@@ -77,8 +79,12 @@ public class Target {
         return nameConstants;
     }
 
-    public void setNameConstants(List<String> nameConstants) {
-        this.nameConstants = nameConstants;
+    public String getEmptyStringConstant() {
+        return emptyStringConstant;
+    }
+
+    public void setEmptyStringConstant(String emptyStringConstant) {
+        this.emptyStringConstant = emptyStringConstant;
     }
 
 }

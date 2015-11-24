@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -56,4 +56,84 @@ public class ErroneousCollectionMappingTest {
     public void shouldFailToGenerateImplementationBetweenCollectionAndNonCollection() {
     }
 
+    @Test
+    @IssueKey("417")
+    @WithClasses({ EmptyItererableMappingMapper.class })
+    @ExpectedCompilationOutcome(
+        value = CompilationResult.FAILED,
+        diagnostics = {
+            @Diagnostic(type = EmptyItererableMappingMapper.class,
+                kind = Kind.ERROR,
+                line = 35,
+                messageRegExp = "'nullValueMappingStrategy','dateformat', 'qualifiedBy' and 'elementTargetType' are "
+                    + "undefined in @IterableMapping, define at least one of them.")
+        }
+    )
+    public void shouldFailOnEmptyIterableAnnotation() {
+    }
+
+    @Test
+    @IssueKey("417")
+    @WithClasses({ EmptyMapMappingMapper.class })
+    @ExpectedCompilationOutcome(
+        value = CompilationResult.FAILED,
+        diagnostics = {
+            @Diagnostic(type = EmptyMapMappingMapper.class,
+                kind = Kind.ERROR,
+                line = 34,
+                messageRegExp = "'nullValueMappingStrategy', 'keyDateFormat', 'keyQualifiedBy', 'keyTargetType', "
+                    + "'valueDateFormat', 'valueQualfiedBy' and 'valueTargetType' are all undefined in @MapMapping, "
+                    + "define at least one of them.")
+        }
+    )
+    public void shouldFailOnEmptyMapAnnotation() {
+    }
+
+    @Test
+    @IssueKey("459")
+    @WithClasses({ ErroneousCollectionNoElementMappingFound.class })
+    @ExpectedCompilationOutcome(
+        value = CompilationResult.FAILED,
+        diagnostics = {
+            @Diagnostic(type = ErroneousCollectionNoElementMappingFound.class,
+                kind = Kind.ERROR,
+                line = 36,
+                messageRegExp = "No implementation can be generated for this method. Found no method nor implicit "
+                    + "conversion for mapping source element type into target element type.")
+        }
+    )
+    public void shouldFailOnNoElementMappingFound() {
+    }
+
+    @Test
+    @IssueKey("459")
+    @WithClasses({ ErroneousCollectionNoKeyMappingFound.class })
+    @ExpectedCompilationOutcome(
+        value = CompilationResult.FAILED,
+        diagnostics = {
+            @Diagnostic(type = ErroneousCollectionNoKeyMappingFound.class,
+                kind = Kind.ERROR,
+                line = 36,
+                messageRegExp = "No implementation can be generated for this method. Found no method nor implicit "
+                    + "conversion for mapping source key type to target key type.")
+        }
+    )
+    public void shouldFailOnNoKeyMappingFound() {
+    }
+
+    @Test
+    @IssueKey("459")
+    @WithClasses({ ErroneousCollectionNoValueMappingFound.class })
+    @ExpectedCompilationOutcome(
+        value = CompilationResult.FAILED,
+        diagnostics = {
+            @Diagnostic(type = ErroneousCollectionNoValueMappingFound.class,
+                kind = Kind.ERROR,
+                line = 36,
+                messageRegExp = "No implementation can be generated for this method. Found no method nor implicit "
+                    + "conversion for mapping source value type to target value type.")
+        }
+    )
+    public void shouldFailOnNoValueMappingFound() {
+    }
 }

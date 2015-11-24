@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012-2014 Gunnar Morling (http://www.gunnarmorling.de/)
+ *  Copyright 2012-2015 Gunnar Morling (http://www.gunnarmorling.de/)
  *  and/or other contributors as indicated by the @authors tag. See the
  *  copyright.txt file in the distribution for a full listing of all
  *  contributors.
@@ -21,28 +21,33 @@ package org.mapstruct.ap.test.collection.adder;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mapstruct.ap.test.collection.adder._target.AdderUsageObserver;
+import org.mapstruct.ap.test.collection.adder._target.IndoorPet;
+import org.mapstruct.ap.test.collection.adder._target.OutdoorPet;
+import org.mapstruct.ap.test.collection.adder._target.Pet;
+import org.mapstruct.ap.test.collection.adder._target.Target;
+import org.mapstruct.ap.test.collection.adder._target.Target2;
+import org.mapstruct.ap.test.collection.adder._target.TargetDali;
+import org.mapstruct.ap.test.collection.adder._target.TargetHuman;
+import org.mapstruct.ap.test.collection.adder._target.TargetOnlyGetter;
+import org.mapstruct.ap.test.collection.adder._target.TargetViaTargetType;
+import org.mapstruct.ap.test.collection.adder._target.TargetWithoutSetter;
 import org.mapstruct.ap.test.collection.adder.source.SingleElementSource;
 import org.mapstruct.ap.test.collection.adder.source.Source;
 import org.mapstruct.ap.test.collection.adder.source.SourceTeeth;
-import org.mapstruct.ap.test.collection.adder.target.AdderUsageObserver;
-import org.mapstruct.ap.test.collection.adder.target.IndoorPet;
-import org.mapstruct.ap.test.collection.adder.target.OutdoorPet;
-import org.mapstruct.ap.test.collection.adder.target.Pet;
-import org.mapstruct.ap.test.collection.adder.target.Target;
-import org.mapstruct.ap.test.collection.adder.target.TargetDali;
-import org.mapstruct.ap.test.collection.adder.target.TargetHuman;
-import org.mapstruct.ap.test.collection.adder.target.TargetOnlyGetter;
-import org.mapstruct.ap.test.collection.adder.target.TargetViaTargetType;
-import org.mapstruct.ap.test.collection.adder.target.TargetWithoutSetter;
 import org.mapstruct.ap.testutil.IssueKey;
 import org.mapstruct.ap.testutil.WithClasses;
 import org.mapstruct.ap.testutil.runner.AnnotationProcessorTestRunner;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.mapstruct.ap.test.collection.adder.source.Foo;
+import org.mapstruct.ap.test.collection.adder.source.Source2;
 
 /**
  * @author Sjaak Derksen
@@ -238,5 +243,23 @@ public class AdderTest {
         assertThat( target.getPets().size() ).isEqualTo( 1 );
         assertThat( target.getPets().get( 0 ) ).isEqualTo( 2L );
         assertTrue( AdderUsageObserver.isUsed() );
+    }
+
+    @IssueKey( "310" )
+    @Test
+    @WithClasses( {
+        Target2.class,
+        Source2.class,
+        Source2Target2Mapper.class,
+        Foo.class
+    } )
+    public void testMissingImport() throws DogException {
+
+        Source2 source = new Source2();
+        source.setAttributes( Arrays.asList( new Foo() ) );
+
+        Target2 target = Source2Target2Mapper.INSTANCE.toTarget( source );
+        assertThat( target ).isNotNull();
+        assertThat( target.getAttributes().size() ).isEqualTo( 1 );
     }
 }
